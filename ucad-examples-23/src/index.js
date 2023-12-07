@@ -1,33 +1,70 @@
-import http from 'http';
-import {getItems, getItemsById, postItem} from './items.js';
-const hostname = '127.0.0.1';
-const port = 3000;
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import { getItems, getItemsById, postItem } from "./items.js";
 
-const server = http.createServer((req, res) => {
-  console.log('request', req.method, req.url);
-  const {method, url} = req;
-  const reqParts = url.split('/');
-  // check method, url and generate response accordingly (=routing)
-  if (method === 'GET' && url === '/') {
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write('<h1>Welcome to my API</h1>');
-    res.write('<p>documentation comes here</p>');
-    res.end();
-  } else if (method === 'GET' && reqParts[1] === 'items' && reqParts[2]) {
-    console.log('GETting item with id', reqParts[2]);
-    getItemsById(res, reqParts[2]);
-  } else if (method === 'GET' && reqParts[1] === 'items') {
-    console.log('GETting all items');
-    getItems(res);
-  } else if (method === 'POST' && reqParts[1] === 'items') {
-    console.log('POSTing a new item');
-    postItem(req, res);
-  } else {
-    res.writeHead(404, {'Content-Type': 'application/json'});
-    res.end('{"message": "404 Resource not found!"}');
-  }
+const hostname = "127.0.0.1";
+const app = express();
+const port = 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.set("view engine", "pug");
+app.set("views", "src/views");
+
+app.use(express.json());
+app.use("/docs", express.static(path.join(__dirname, "../docs")));
+
+// simple custom middleware for loggin/debugging all requests
+app.use((req, res, next) => {
+  console.log("Time:", Date.now(), req.method, req.url);
+  next();
 });
 
-server.listen(port, hostname, () => {
+app.get("/", (req, res) => {
+  const values = { title: "Dummy REST API docs", message: "TODO: docs" };
+  res.render("home", values);
+});
+
+// dummy routing example
+app.get("/kukkuu", (request, response) => {
+  const myResponse = { message: "No moro!" };
+  //response.json(myResponse);
+  response.sendStatus(200);
+});
+
+// other dummy pug example
+app.get("/:message", (req, res) => {
+  const values = { title: "Dummy REST API docs", message: req.params.message };
+  res.render("home", values);
+});
+
+// example generic items api
+
+// get all items
+app.get("/api/items", getItems);
+// get items by id
+app.get("/api/items/:id", getItemsById);
+// modify
+app.put("/api/items");
+// add new item
+app.post("/api/items", postItem);
+// remove existing item
+app.delete("/api/items");
+
+app.use(express.json());
+// POST http://localhost:3000/api/resource
+// sends request data back to client
+
+app.post('/api/resource', (req, res) => {
+  const body = req.body;
+  res.status(201);
+  res.json({your_request: body});
+});
+app.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
 });
+
+/*server.listen(port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`);
+});*/
