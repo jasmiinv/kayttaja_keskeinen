@@ -2,7 +2,7 @@ import {promisePool} from "../utils/database.mjs";
 
 const fetchAllMedia = async () => {
   try {
-    const result = await promisePool.query('SELECT * FROM mediaItems');
+    const result = await promisePool.query('SELECT * FROM MediaItems');
     const [rows] = result; // first item in result array is the data rows
     //console.log(result);
     //console.log('rows', rows);
@@ -31,13 +31,13 @@ const fetchMediaById = async (id) => {
 
 /**
  * Add new media item to database
- * 
+ *
  * @param {object} media - object containing all information about the new media item
  * @returns {object} - object containing id of the inserted media item in db
  */
 const addMedia = async (media) => {
   const {user_id, filename, size, mimetype, title, description} = media;
-  const sql = `INSERT INTO mediaItems (user_id, filename, filesize, media_type, title, description)
+  const sql = `INSERT INTO MediaItems (user_id, filename, filesize, media_type, title, description)
                VALUES (?, ?, ?, ?, ?, ?)`;
   const params = [user_id, filename, size, mimetype, title, description];
   try {
